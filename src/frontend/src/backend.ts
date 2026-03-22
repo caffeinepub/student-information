@@ -90,16 +90,18 @@ export class ExternalBlob {
     }
 }
 export interface StudentRecord {
+    studentEmail: string;
     collegeName: string;
     rollNumber: string;
     address: string;
     timestamp: Time;
     phoneNumber: string;
+    courseDetails: string;
 }
 export type Time = bigint;
 export interface backendInterface {
     getAllRecords(): Promise<Array<StudentRecord>>;
-    submitRecord(rollNumber: string, collegeName: string, address: string, phoneNumber: string): Promise<void>;
+    submitRecord(rollNumber: string, collegeName: string, courseDetails: string, address: string, phoneNumber: string, studentEmail: string): Promise<void>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
@@ -117,17 +119,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async submitRecord(arg0: string, arg1: string, arg2: string, arg3: string): Promise<void> {
+    async submitRecord(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitRecord(arg0, arg1, arg2, arg3);
+                const result = await this.actor.submitRecord(arg0, arg1, arg2, arg3, arg4, arg5);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitRecord(arg0, arg1, arg2, arg3);
+            const result = await this.actor.submitRecord(arg0, arg1, arg2, arg3, arg4, arg5);
             return result;
         }
     }

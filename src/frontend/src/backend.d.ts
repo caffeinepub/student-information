@@ -8,14 +8,16 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export interface StudentRecord {
+    studentEmail: string;
     collegeName: string;
     rollNumber: string;
     address: string;
     timestamp: Time;
     phoneNumber: string;
+    courseDetails: string;
 }
 export type Time = bigint;
 export interface backendInterface {
     getAllRecords(): Promise<Array<StudentRecord>>;
-    submitRecord(rollNumber: string, collegeName: string, address: string, phoneNumber: string): Promise<void>;
+    submitRecord(rollNumber: string, collegeName: string, courseDetails: string, address: string, phoneNumber: string, studentEmail: string): Promise<void>;
 }

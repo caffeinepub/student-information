@@ -1,22 +1,27 @@
 # Student Information
 
 ## Current State
-New project -- no existing application files.
+Form collects: roll number, college name, course details, address, phone number.
+Backend stores StudentRecord with these 5 fields + timestamp.
+No student email field exists yet.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Student information submission form with fields: Roll Number, College/Institute details, Address, Phone Number
-- Submit button to store the submission in the backend
-- Response button / View Submissions section to display all stored submissions
-- Admin view to see all submitted student records
+- studentEmail field to StudentRecord type in backend
+- studentEmail parameter to submitRecord backend function
+- Student Email input field in the frontend form
+- studentEmail wired through useSubmitRecord hook
 
 ### Modify
-N/A
+- Backend submitRecord to accept and store studentEmail
+- useQueries.ts mutationFn to pass studentEmail
+- App.tsx form to include student email field with validation
 
 ### Remove
-N/A
+- Nothing
 
 ## Implementation Plan
-- Backend: Store student records (roll number, college details, address, phone number, timestamp). APIs: submitStudent, getAllStudents.
-- Frontend: Single-page app with a submission form and a submissions table/list section accessible via a "Response" button or tab.
+1. Update Motoko backend to add studentEmail to record and submitRecord
+2. Update useQueries.ts to include studentEmail in mutation
+3. Update App.tsx to add student email input field and state

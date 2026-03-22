@@ -10,16 +10,22 @@ import { IDL } from '@icp-sdk/core/candid';
 
 export const Time = IDL.Int;
 export const StudentRecord = IDL.Record({
+  'studentEmail' : IDL.Text,
   'collegeName' : IDL.Text,
   'rollNumber' : IDL.Text,
   'address' : IDL.Text,
   'timestamp' : Time,
   'phoneNumber' : IDL.Text,
+  'courseDetails' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
   'getAllRecords' : IDL.Func([], [IDL.Vec(StudentRecord)], ['query']),
-  'submitRecord' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Text], [], []),
+  'submitRecord' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -27,16 +33,22 @@ export const idlInitArgs = [];
 export const idlFactory = ({ IDL }) => {
   const Time = IDL.Int;
   const StudentRecord = IDL.Record({
+    'studentEmail' : IDL.Text,
     'collegeName' : IDL.Text,
     'rollNumber' : IDL.Text,
     'address' : IDL.Text,
     'timestamp' : Time,
     'phoneNumber' : IDL.Text,
+    'courseDetails' : IDL.Text,
   });
   
   return IDL.Service({
     'getAllRecords' : IDL.Func([], [IDL.Vec(StudentRecord)], ['query']),
-    'submitRecord' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Text], [], []),
+    'submitRecord' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
   });
 };
 

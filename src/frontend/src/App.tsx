@@ -1,61 +1,37 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   AlertCircle,
   BookOpen,
   CheckCircle2,
-  ClipboardList,
   GraduationCap,
   Mail,
   MapPin,
   Phone,
   Send,
-  Users,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { StudentRecord } from "./backend.d";
-import { useGetAllRecords, useSubmitRecord } from "./hooks/useQueries";
+import { useSubmitRecord } from "./hooks/useQueries";
 
 const queryClient = new QueryClient();
-
-function formatDate(timestamp: bigint): string {
-  const ms = Number(timestamp / 1_000_000n);
-  return new Date(ms).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-type Tab = "submit" | "responses";
 
 const NAV_ITEMS = ["Home", "Data Submission", "FAQs", "Contact"] as const;
 
 function Portal() {
-  const [activeTab, setActiveTab] = useState<Tab>("submit");
   const [rollNumber, setRollNumber] = useState("");
   const [collegeName, setCollegeName] = useState("");
+  const [courseDetails, setCourseDetails] = useState("");
   const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const { data: records, isLoading: recordsLoading } = useGetAllRecords();
   const submitMutation = useSubmitRecord();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,8 +39,10 @@ function Portal() {
     if (
       !rollNumber.trim() ||
       !collegeName.trim() ||
+      !courseDetails.trim() ||
       !address.trim() ||
-      !phoneNumber.trim()
+      !phoneNumber.trim() ||
+      !studentEmail.trim()
     ) {
       toast.error("Please fill in all fields.");
       return;
@@ -73,14 +51,18 @@ function Portal() {
       await submitMutation.mutateAsync({
         rollNumber,
         collegeName,
+        courseDetails,
         address,
         phoneNumber,
+        studentEmail,
       });
       setSubmitSuccess(true);
       setRollNumber("");
       setCollegeName("");
+      setCourseDetails("");
       setAddress("");
       setPhoneNumber("");
+      setStudentEmail("");
       toast.success("Student record submitted successfully!");
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch {
@@ -169,408 +151,241 @@ function Portal() {
         </div>
       </section>
 
-      {/* Tab Bar */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-0">
-            <button
-              type="button"
-              onClick={() => setActiveTab("submit")}
-              data-ocid="main.submit.tab"
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "submit"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Send className="w-4 h-4" />
-              Data Submission
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("responses")}
-              data-ocid="main.responses.tab"
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "responses"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              View Responses
-              {records && records.length > 0 && (
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {records.length}
-                </Badge>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main */}
       <main className="flex-1 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnimatePresence mode="wait">
-            {activeTab === "submit" ? (
-              <motion.div
-                key="submit"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 10 }}
-                transition={{ duration: 0.25 }}
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Form Card */}
-                  <div className="lg:col-span-2">
-                    <div className="bg-card rounded-lg shadow-card border border-border">
-                      <div className="px-6 pt-6 pb-4 border-b border-border">
-                        <h2 className="text-lg font-semibold text-foreground">
-                          Submit Student Record
-                        </h2>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          Fill in the details below and click Submit to record
-                          the information.
-                        </p>
-                      </div>
-
-                      <AnimatePresence>
-                        {submitSuccess && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="mx-6 mt-4 flex items-center gap-3 p-3 rounded-md bg-green-50 border border-green-200 text-green-700"
-                            data-ocid="form.success_state"
-                          >
-                            <CheckCircle2 className="w-4 h-4 shrink-0" />
-                            <span className="text-sm font-medium">
-                              Record submitted successfully! It has been linked
-                              to harithapaadiri@gmail.com.
-                            </span>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                        <div className="space-y-1.5">
-                          <Label
-                            htmlFor="rollNumber"
-                            className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
-                          >
-                            Roll Number{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <Input
-                            id="rollNumber"
-                            placeholder="e.g. 2024CS001"
-                            value={rollNumber}
-                            onChange={(e) => setRollNumber(e.target.value)}
-                            className="bg-input border-border text-sm"
-                            data-ocid="form.roll_number.input"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label
-                            htmlFor="collegeName"
-                            className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
-                          >
-                            College / Institute Details{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <Input
-                            id="collegeName"
-                            placeholder="e.g. Sri Ramakrishna Engineering College, Coimbatore"
-                            value={collegeName}
-                            onChange={(e) => setCollegeName(e.target.value)}
-                            className="bg-input border-border text-sm"
-                            data-ocid="form.college_name.input"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label
-                            htmlFor="address"
-                            className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
-                          >
-                            <MapPin className="inline w-3 h-3 mr-1" />
-                            Address <span className="text-destructive">*</span>
-                          </Label>
-                          <Textarea
-                            id="address"
-                            placeholder="Enter full residential address..."
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            rows={3}
-                            className="bg-input border-border text-sm resize-none"
-                            data-ocid="form.address.textarea"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <Label
-                            htmlFor="phoneNumber"
-                            className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
-                          >
-                            <Phone className="inline w-3 h-3 mr-1" />
-                            Phone Number{" "}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <Input
-                            id="phoneNumber"
-                            type="tel"
-                            placeholder="e.g. +91 98765 43210"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            className="bg-input border-border text-sm"
-                            data-ocid="form.phone_number.input"
-                          />
-                        </div>
-
-                        <Button
-                          type="submit"
-                          className="w-full mt-2 gap-2"
-                          disabled={submitMutation.isPending}
-                          data-ocid="form.submit.button"
-                        >
-                          {submitMutation.isPending ? (
-                            <>
-                              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                              Submitting...
-                            </>
-                          ) : (
-                            <>
-                              <Send className="w-4 h-4" />
-                              Submit Record
-                            </>
-                          )}
-                        </Button>
-
-                        {submitMutation.isError && (
-                          <div
-                            className="flex items-center gap-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm"
-                            data-ocid="form.error_state"
-                          >
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                            Submission failed. Please check your connection and
-                            try again.
-                          </div>
-                        )}
-                      </form>
-                    </div>
-                  </div>
-
-                  {/* Sidebar */}
-                  <div className="space-y-4">
-                    <div className="bg-card rounded-lg shadow-card border border-border p-5">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
-                          <AlertCircle className="w-4 h-4 text-amber-600" />
-                        </div>
-                        <h3 className="font-semibold text-sm text-foreground">
-                          Important Notices
-                        </h3>
-                      </div>
-                      <ul className="space-y-2.5 text-sm text-muted-foreground">
-                        {[
-                          "Ensure your roll number is correct before submission.",
-                          "All fields are mandatory. Incomplete forms will not be processed.",
-                          "Contact administration at harithapaadiri@gmail.com for corrections.",
-                          "Records are submitted for the current academic year.",
-                        ].map((notice) => (
-                          <li key={notice} className="flex gap-2">
-                            <span className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                            {notice}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="bg-card rounded-lg shadow-card border border-border p-5">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
-                          <ClipboardList className="w-4 h-4 text-primary" />
-                        </div>
-                        <h3 className="font-semibold text-sm text-foreground">
-                          View All Responses
-                        </h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Click below to view all submitted student records linked
-                        to the admin account.
-                      </p>
-                      <Button
-                        variant="outline"
-                        className="w-full gap-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                        onClick={() => setActiveTab("responses")}
-                        data-ocid="sidebar.response.button"
-                      >
-                        <Users className="w-4 h-4" />
-                        Response
-                      </Button>
-                    </div>
-
-                    <div className="bg-card rounded-lg shadow-card border border-border p-5">
-                      <h3 className="font-semibold text-sm text-foreground mb-3">
-                        Portal Statistics
-                      </h3>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-background rounded-md p-3 text-center">
-                          <div className="text-2xl font-bold text-primary">
-                            {records?.length ?? "—"}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            Total Records
-                          </div>
-                        </div>
-                        <div className="bg-background rounded-md p-3 text-center">
-                          <div className="text-2xl font-bold text-primary">
-                            1
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            Admin Account
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="responses"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.25 }}
-              >
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Form Card */}
+              <div className="lg:col-span-2">
                 <div className="bg-card rounded-lg shadow-card border border-border">
-                  <div className="px-6 pt-6 pb-4 border-b border-border flex items-center justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                        <ClipboardList className="w-5 h-5 text-primary" />
-                        Submitted Records
-                      </h2>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        All records linked to harithapaadiri@gmail.com
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setActiveTab("submit")}
-                      data-ocid="responses.back.button"
-                    >
-                      ← Back to Form
-                    </Button>
+                  <div className="px-6 pt-6 pb-4 border-b border-border">
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Submit Student Record
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Fill in the details below and click Submit to record the
+                      information.
+                    </p>
                   </div>
 
-                  <div className="p-6">
-                    {recordsLoading ? (
-                      <div
-                        className="space-y-3"
-                        data-ocid="records.loading_state"
+                  <AnimatePresence>
+                    {submitSuccess && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="mx-6 mt-4 flex items-center gap-3 p-3 rounded-md bg-green-50 border border-green-200 text-green-700"
+                        data-ocid="form.success_state"
                       >
-                        {[1, 2, 3].map((i) => (
-                          <Skeleton
-                            key={i}
-                            className="h-12 w-full rounded-md"
-                          />
-                        ))}
-                      </div>
-                    ) : !records || records.length === 0 ? (
-                      <div
-                        className="text-center py-16 text-muted-foreground"
-                        data-ocid="records.empty_state"
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        <span className="text-sm font-medium">
+                          Record submitted successfully! It has been linked to
+                          harithapaadiri@gmail.com.
+                        </span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="rollNumber"
+                        className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
                       >
-                        <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p className="font-medium">No records submitted yet.</p>
-                        <p className="text-sm mt-1">
-                          Use the Data Submission form to add student records.
-                        </p>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="mt-4 gap-2"
-                          onClick={() => setActiveTab("submit")}
-                          data-ocid="records.submit_redirect.button"
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                          Submit First Record
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto rounded-md border border-border">
-                        <Table data-ocid="records.table">
-                          <TableHeader>
-                            <TableRow className="bg-muted/50">
-                              <TableHead className="w-12 text-xs font-semibold">
-                                #
-                              </TableHead>
-                              <TableHead className="text-xs font-semibold">
-                                Roll Number
-                              </TableHead>
-                              <TableHead className="text-xs font-semibold">
-                                College / Institute
-                              </TableHead>
-                              <TableHead className="text-xs font-semibold">
-                                Address
-                              </TableHead>
-                              <TableHead className="text-xs font-semibold">
-                                Phone
-                              </TableHead>
-                              <TableHead className="text-xs font-semibold">
-                                Date Submitted
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {records.map(
-                              (record: StudentRecord, index: number) => (
-                                <TableRow
-                                  key={`${record.rollNumber}-${index}`}
-                                  className="hover:bg-muted/30 transition-colors"
-                                  data-ocid={`records.item.${index + 1}`}
-                                >
-                                  <TableCell className="text-xs text-muted-foreground font-mono">
-                                    {index + 1}
-                                  </TableCell>
-                                  <TableCell className="font-medium text-sm">
-                                    <Badge
-                                      variant="outline"
-                                      className="font-mono text-xs"
-                                    >
-                                      {record.rollNumber}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="text-sm max-w-[200px] truncate">
-                                    {record.collegeName}
-                                  </TableCell>
-                                  <TableCell className="text-sm max-w-[200px] truncate text-muted-foreground">
-                                    {record.address}
-                                  </TableCell>
-                                  <TableCell className="text-sm">
-                                    <span className="flex items-center gap-1">
-                                      <Phone className="w-3 h-3 text-muted-foreground" />
-                                      {record.phoneNumber}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell className="text-xs text-muted-foreground">
-                                    {formatDate(record.timestamp)}
-                                  </TableCell>
-                                </TableRow>
-                              ),
-                            )}
-                          </TableBody>
-                        </Table>
+                        Roll Number <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="rollNumber"
+                        placeholder="e.g. 2024CS001"
+                        value={rollNumber}
+                        onChange={(e) => setRollNumber(e.target.value)}
+                        className="bg-input border-border text-sm"
+                        data-ocid="form.roll_number.input"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="collegeName"
+                        className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                      >
+                        College / Institute Details{" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="collegeName"
+                        placeholder="e.g. Sri Ramakrishna Engineering College, Coimbatore"
+                        value={collegeName}
+                        onChange={(e) => setCollegeName(e.target.value)}
+                        className="bg-input border-border text-sm"
+                        data-ocid="form.college_name.input"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="courseDetails"
+                        className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                      >
+                        Course Details{" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="courseDetails"
+                        placeholder="e.g. B.Tech Computer Science, MBA Finance"
+                        value={courseDetails}
+                        onChange={(e) => setCourseDetails(e.target.value)}
+                        className="bg-input border-border text-sm"
+                        data-ocid="form.course_details.input"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="address"
+                        className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                      >
+                        <MapPin className="inline w-3 h-3 mr-1" />
+                        Address <span className="text-destructive">*</span>
+                      </Label>
+                      <Textarea
+                        id="address"
+                        placeholder="Enter full residential address..."
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        rows={3}
+                        className="bg-input border-border text-sm resize-none"
+                        data-ocid="form.address.textarea"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="phoneNumber"
+                        className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                      >
+                        <Phone className="inline w-3 h-3 mr-1" />
+                        Phone Number <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        placeholder="e.g. +91 98765 43210"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="bg-input border-border text-sm"
+                        data-ocid="form.phone_number.input"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="studentEmail"
+                        className="text-xs font-medium text-muted-foreground uppercase tracking-wide"
+                      >
+                        <Mail className="inline w-3 h-3 mr-1" />
+                        Student Email{" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="studentEmail"
+                        type="email"
+                        placeholder="e.g. student@college.edu"
+                        value={studentEmail}
+                        onChange={(e) => setStudentEmail(e.target.value)}
+                        className="bg-input border-border text-sm"
+                        data-ocid="form.student_email.input"
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full mt-2 gap-2"
+                      disabled={submitMutation.isPending}
+                      data-ocid="form.submit.button"
+                    >
+                      {submitMutation.isPending ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Submit Student Record
+                        </>
+                      )}
+                    </Button>
+
+                    {submitMutation.isError && (
+                      <div
+                        className="flex items-center gap-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm"
+                        data-ocid="form.error_state"
+                      >
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        Submission failed. Please check your connection and try
+                        again.
                       </div>
                     )}
+                  </form>
+                </div>
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-4">
+                <div className="bg-card rounded-lg shadow-card border border-border p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
+                      <AlertCircle className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <h3 className="font-semibold text-sm text-foreground">
+                      Important Notices
+                    </h3>
+                  </div>
+                  <ul className="space-y-2.5 text-sm text-muted-foreground">
+                    {[
+                      "Ensure your roll number is correct before submission.",
+                      "All fields are mandatory. Incomplete forms will not be processed.",
+                      "Contact administration at harithapaadiri@gmail.com for corrections.",
+                      "Records are submitted for the current academic year.",
+                    ].map((notice) => (
+                      <li key={notice} className="flex gap-2">
+                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        {notice}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-card rounded-lg shadow-card border border-border p-5">
+                  <h3 className="font-semibold text-sm text-foreground mb-3">
+                    Portal Statistics
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-background rounded-md p-3 text-center">
+                      <div className="text-2xl font-bold text-primary">1</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Admin Account
+                      </div>
+                    </div>
+                    <div className="bg-background rounded-md p-3 text-center">
+                      <div className="text-2xl font-bold text-primary">
+                        24/7
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        Availability
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </main>
 
@@ -603,11 +418,9 @@ function Portal() {
                   className="space-y-1.5 text-sm"
                   style={{ color: "oklch(0.75 0.02 240)" }}
                 >
-                  {["Home", "Data Submission", "View Submissions", "FAQs"].map(
-                    (link) => (
-                      <li key={link}>{link}</li>
-                    ),
-                  )}
+                  {["Home", "Data Submission", "FAQs"].map((link) => (
+                    <li key={link}>{link}</li>
+                  ))}
                 </ul>
               </div>
               <div>

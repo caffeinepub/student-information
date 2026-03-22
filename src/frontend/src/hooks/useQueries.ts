@@ -21,15 +21,19 @@ export function useSubmitRecord() {
     mutationFn: async (data: {
       rollNumber: string;
       collegeName: string;
+      courseDetails: string;
       address: string;
       phoneNumber: string;
+      studentEmail: string;
     }) => {
       if (!actor) throw new Error("Not connected");
       await actor.submitRecord(
         data.rollNumber,
         data.collegeName,
+        data.courseDetails,
         data.address,
         data.phoneNumber,
+        data.studentEmail,
       );
     },
     onSuccess: () => {

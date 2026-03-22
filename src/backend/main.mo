@@ -2,38 +2,45 @@ import Iter "mo:core/Iter";
 import Order "mo:core/Order";
 import Array "mo:core/Array";
 import Map "mo:core/Map";
+import Text "mo:core/Text";
 import Time "mo:core/Time";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type StudentRecord = {
     rollNumber : Text;
     collegeName : Text;
+    courseDetails : Text;
     address : Text;
     phoneNumber : Text;
+    studentEmail : Text;
     timestamp : Time.Time;
   };
 
   module StudentRecord {
-    public func compare(record1 : StudentRecord, record2 : StudentRecord) : Order.Order {
-      rollNumberCompare(record1.rollNumber, record2.rollNumber);
-    };
-
-    func rollNumberCompare(text1 : Text, text2 : Text) : Order.Order {
-      switch (Text.compare(text1, text2)) {
-        case (#equal) { Text.compare(text1, text2) };
-        case (order) { order };
-      };
+    public func compare(a : StudentRecord, b : StudentRecord) : Order.Order {
+      Text.compare(a.rollNumber, b.rollNumber);
     };
   };
 
   let records = Map.empty<Text, StudentRecord>();
 
-  public shared ({ caller }) func submitRecord(rollNumber : Text, collegeName : Text, address : Text, phoneNumber : Text) : async () {
+  public shared ({ caller }) func submitRecord(
+    rollNumber : Text,
+    collegeName : Text,
+    courseDetails : Text,
+    address : Text,
+    phoneNumber : Text,
+    studentEmail : Text,
+  ) : async () {
     let record : StudentRecord = {
       rollNumber;
       collegeName;
+      courseDetails;
       address;
       phoneNumber;
+      studentEmail;
       timestamp = Time.now();
     };
     records.add(rollNumber, record);
